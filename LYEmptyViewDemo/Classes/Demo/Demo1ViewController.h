@@ -1,13 +1,13 @@
 //
-//  DemoViewController.h
+//  Demo1ViewController.h
 //  LYEmptyViewDemo
 //
 //  Created by liyang on 2017/7/28.
 //  Copyright © 2017年 liyang. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import "BaseDemoViewController.h"
 
-@interface DemoViewController : UIViewController
+@interface Demo1ViewController : BaseDemoViewController
 
 @end

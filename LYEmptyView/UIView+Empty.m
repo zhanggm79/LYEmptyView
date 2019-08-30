@@ -1,27 +1,23 @@
 //
-//  UIScrollView+Empty.m
+//  UIView+Empty.m
 //  LYEmptyViewDemo
 //
-//  Created by 李阳 on 2017/5/26.
-//  Copyright © 2017年 liyang. All rights reserved.
+//  Created by liyang on 2018/5/10.
+//  Copyright © 2018年 liyang. All rights reserved.
 //
 
-#import "UIScrollView+Empty.h"
+#import "UIView+Empty.h"
 #import <objc/runtime.h>
 #import "LYEmptyView.h"
 
-@implementation NSObject (Empty)
+#pragma mark - ------------------ UIView ------------------
+
+@implementation UIView (Empty)
 
 + (void)exchangeInstanceMethod1:(SEL)method1 method2:(SEL)method2
 {
     method_exchangeImplementations(class_getInstanceMethod(self, method1), class_getInstanceMethod(self, method2));
 }
-
-@end
-
-#pragma mark - ------------------ UIScrollView ------------------
-
-@implementation UIScrollView (Empty)
 
 #pragma mark - Setter/Getter
 
@@ -37,13 +33,19 @@ static char kEmptyViewKey;
             }
         }
         [self addSubview:self.ly_emptyView];
+        
+        if ([self isKindOfClass:[UITableView class]] || [self isKindOfClass:[UICollectionView class]]) {
+            [self getDataAndSet]; // 添加时根据DataSource去决定显隐
+        } else {
+            self.ly_emptyView.hidden = YES;// 添加时默认隐藏
+        }
     }
 }
 - (LYEmptyView *)ly_emptyView{
     return  objc_getAssociatedObject(self, &kEmptyViewKey);
 }
 
-#pragma mark - Private Method
+#pragma mark - Private Method (UITableView、UICollectionView有效)
 - (NSInteger)totalDataCount
 {
     NSInteger totalCount = 0;
@@ -62,7 +64,6 @@ static char kEmptyViewKey;
     }
     return totalCount;
 }
-
 - (void)getDataAndSet{
     //没有设置emptyView的，直接返回
     if (!self.ly_emptyView) {
@@ -75,7 +76,6 @@ static char kEmptyViewKey;
         [self hide];
     }
 }
-
 - (void)show{
     
     //当不自动显隐时，内部自动调用show方法时也不要去显示，要显示的话只有手动去调用 ly_showEmptyView
@@ -99,25 +99,26 @@ static char kEmptyViewKey;
 #pragma mark - Public Method
 - (void)ly_showEmptyView{
     
+    NSAssert(![self isKindOfClass:[LYEmptyView class]], @"LYEmptyView及其子类不能调用ly_showEmptyView方法");
+    
     [self.ly_emptyView.superview layoutSubviews];
     
     self.ly_emptyView.hidden = NO;
+    
     //让 emptyBGView 始终保持在最上层
     [self bringSubviewToFront:self.ly_emptyView];
 }
 - (void)ly_hideEmptyView{
+    NSAssert(![self isKindOfClass:[LYEmptyView class]], @"LYEmptyView及其子类不能调用ly_hideEmptyView方法");
     self.ly_emptyView.hidden = YES;
 }
-
 - (void)ly_startLoading{
+    NSAssert(![self isKindOfClass:[LYEmptyView class]], @"LYEmptyView及其子类不能调用ly_startLoading方法");
     self.ly_emptyView.hidden = YES;
 }
 - (void)ly_endLoading{
-    if ([self totalDataCount] == 0) {
-        self.ly_emptyView.hidden = NO;
-    }else{
-        self.ly_emptyView.hidden = YES;
-    }
+    NSAssert(![self isKindOfClass:[LYEmptyView class]], @"LYEmptyView及其子类不能调用ly_endLoading方法");
+    self.ly_emptyView.hidden = [self totalDataCount];
 }
 
 @end
@@ -177,6 +178,7 @@ static char kEmptyViewKey;
 #pragma mark - ------------------ UICollectionView ------------------
 
 @implementation UICollectionView (Empty)
+
 + (void)load{
     
     [self exchangeInstanceMethod1:@selector(reloadData) method2:@selector(ly_reloadData)];
@@ -224,3 +226,4 @@ static char kEmptyViewKey;
     [self getDataAndSet];
 }
 @end
+
